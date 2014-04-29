@@ -95,8 +95,8 @@
 
   \vspace{1em}
   \noindent
-  Keywords: category, category theory, endofunctor, functional
-  programming, functor, Haskell.
+  Keywords: category theory, functional programming, functor,
+  endofunctor, Haskell.
 
 \end{abstract}
 
@@ -119,8 +119,8 @@
 
     \vspace{1em}
     \noindent
-    Palabras clave: categoría, endofuntor, funtor, Haskell,
-    programación funcional, teoría de categorías.
+    Palabras clave: teoría de categorías, programación funcional,
+    funtor, endofuntor, Haskell.
 
   \end{abstract}
 
@@ -196,19 +196,17 @@ map :: (a -> b) -> [a] -> [b]
 map _ []     = []
 map f (x:xs) = f x : map f xs
 \end{code}
-Intuitively, |map|~|f|~|xs| is the list obtained by applying a
-function |f| to each element of a list |xs|. Now, let us consider the
-|map'| function \parencite[22]{yorgey-2009}:
+Intuitively, |map| applies a function to each element of a list. But
+we can also map over |Maybe|, as follows:
 \begin{code}
-map' :: (a -> b) -> [a] -> [b]
-map' _ []     = []
-map' f (x:xs) = f x : f x : map' f xs
+mapMaybe :: (a -> b) -> Maybe a -> Maybe b
+mapMaybe _ Nothing  = Nothing
+mapMaybe f (Just x) = Just (f x)
 \end{code}
-Again, |map'|~|f|~|xs| is the list obtained by applying a function |f|
-to each element of a list |xs| (and duplicating each result). We
-should accept |map| and reject |map'|, but for what reason? The answer
-lies in the |Functor| type class, which has its origins in category
-theory.
+In this case, the |mapMaybe| function applies a function to the
+element of a |Just|. As we shall see, mapping over types such as |[]|
+(lists) and |Maybe| is a common pattern that is abstracted by the
+|Functor| type class, which has its origins in category theory.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -431,7 +429,7 @@ fmap (g . f) = fmap g . fmap f
 \end{code}
 
 Hence, Haskell functors are endofunctors in \hask. As examples, we
-consider the |Maybe| and |[]| (list) functors.
+consider the |Maybe| and |[]| functors.
 
 \begin{example}
   \label{ex:functor-maybe}
@@ -443,13 +441,12 @@ consider the |Maybe| and |[]| (list) functors.
   \begin{code}
 data Maybe a = Nothing | Just a
   \end{code}
-  which assigns to each type |a| a type |Maybe|~|a|, and an |fmap|
-  function defined as follows:
+  which assigns to each type |a| a type |Maybe|~|a|, and the
+  |mapMaybe| function (see Section \ref{sec:motivation}):
   \begin{code}
 instance Functor Maybe where
   fmap :: (a -> b) -> Maybe a -> Maybe b
-  fmap _ Nothing  = Nothing
-  fmap f (Just x) = Just (f x)
+  fmap = mapMaybe
   \end{code}
 
 \end{example}
@@ -473,14 +470,21 @@ instance Functor [] where
 
   However, since the |Functor| type class does not include
   \eqref{eq:functor-identity} and \eqref{eq:functor-composition}, the
-  |[]| type constructor and the |map'| function (see Section
-  \ref{sec:motivation}) constitute another instance:
+  |[]| type constructor and the |map'| function
+  \parencite[22]{yorgey-2009}:
+  \begin{code}
+map' :: (a -> b) -> [a] -> [b]
+map' _ []     = []
+map' f (x:xs) = f x : f x : map' f xs
+  \end{code}
+  which applies a function to each element of a list and duplicates
+  each result, constitute another instance of |Functor|:
   \begin{code}
 instance Functor [] where
   fmap :: (a -> b) -> [a] -> [b]
   fmap = map'
   \end{code}
-  but this is not an endofunctor in \hask because identity functions
+  But this is not an endofunctor in \hask because identity functions
   are not preserved. For instance:
   \begin{code}
 > map' id [False]
@@ -488,10 +492,6 @@ instance Functor [] where
 > id [False]
 [False]
   \end{code}
-
-  So, to sum up, we should accept |map| and reject |map'| because only
-  the former preserves identity and composite functions, or, in other
-  words, the latter is not a uniform action over lists.
 
 \end{example}
 
@@ -514,12 +514,12 @@ instance Functor [] where
 We described and explained categories, functors, and endofunctors, and
 applied them to Haskell and, in particular, the Haskell type class of
 functors and the |map| function, which we used as motivation. While
-studying category theory may not be necessary for mapping over lists,
-we believe it is very useful for better understanding what that means.
-In addition, even though it might be difficult at first (as a matter
-of fact, \textcite[25]{bird-demoor-1997} claim that ``one does not so
-much learn category theory as absorb it over a period of time''), we
-claim it is definitely worth it.
+studying category theory may not be necessary for mapping over types
+such as lists, we believe it is very useful for better understanding
+what that means. In addition, even though it might be difficult at
+first (as a matter of fact, \textcite[25]{bird-demoor-1997} claim that
+``one does not so much learn category theory as absorb it over a
+period of time''), we claim it is definitely worth it.
 
 We did not cover all of category theory. For instance, we did not
 include concepts such as algebras and initial algebras, monads and

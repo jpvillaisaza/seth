@@ -24,10 +24,10 @@ map :: (a -> b) -> [a] -> [b]
 map _ []     = []
 map f (x:xs) = f x : map f xs
 
--- The map' function?
-map' :: (a -> b) -> [a] -> [b]
-map' _ []     = []
-map' f (x:xs) = f x : f x : map' f xs
+-- The mapMaybe function.
+mapMaybe :: (a -> b) -> Maybe a -> Maybe b
+mapMaybe _ Nothing  = Nothing
+mapMaybe f (Just x) = Just (f x)
 
 ------------------------------------------------------------------------------
 -- 3 Categories
@@ -80,8 +80,7 @@ data Maybe a = Nothing | Just a
 -- The Maybe functor.
 instance Functor Maybe where
   fmap :: (a -> b) -> Maybe a -> Maybe b
-  fmap _ Nothing  = Nothing
-  fmap f (Just x) = Just (f x)
+  fmap = mapMaybe
 
 ------------------------------------------------------------------------------
 -- Example 4.3
@@ -93,6 +92,11 @@ instance Functor Maybe where
 instance Functor [] where
   fmap :: (a -> b) -> [a] -> [b]
   fmap = map
+
+-- The map' function?
+map' :: (a -> b) -> [a] -> [b]
+map' _ []     = []
+map' f (x:xs) = f x : f x : map' f xs
 
 -- The [] functor?
 -- instance Functor [] where

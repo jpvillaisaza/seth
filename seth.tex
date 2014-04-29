@@ -35,6 +35,7 @@
 
 \theoremstyle{definition}
 
+\newtheorem{bibremark}{Bibliographic Remark}[section]
 \newtheorem{definition}{Definition}[section]
 \newtheorem{example}{Example}[section]
 \newtheorem{note}{Note}[section]
@@ -85,11 +86,12 @@
 
 \begin{abstract}
 
-  We study some of the applications of category theory to functional
+  We show some of the applications of category theory to functional
   programming in the context of the Haskell functional programming
   language. In particular, we describe and explain the concepts of
   category theory which allow us to conceptualize and better
-  understand Haskell functors: categories, functors, and endofunctors.
+  understand the Haskell type class of functors: categories, functors,
+  and endofunctors.
 
   \vspace{1em}
   \noindent
@@ -108,11 +110,11 @@
 
   \begin{abstract}
 
-    Estudiamos algunas de las aplicaciones de la teoría de categorías
-    a la programación funcional en el marco del lenguaje de
-    programación funcional Haskell. En particular, describimos y
-    explicamos los conceptos de teoría de categorías que permiten
-    conceptualizar y profundizar en los funtores de Haskell:
+    Mostramos algunas de las aplicaciones de la teoría de categorías a
+    la programación funcional en el marco del lenguaje de programación
+    funcional Haskell. En particular, describimos y explicamos los
+    conceptos de teoría de categorías que permiten conceptualizar y
+    profundizar en la clase de tipos de funtores de Haskell:
     categorías, funtores y endofuntores.
 
     \vspace{1em}
@@ -149,12 +151,13 @@ concepts such as algebraic data types, functors, monads, and
 parametrically polymorphic functions, and thus becoming a better
 programmer.
 
-In this regard, we study some of the applications of category theory
-to functional programming in Haskell. More specifically, we describe
-and explain the concepts of category theory needed for conceptualizing
-and better understanding functors in Haskell. With this purpose, we
-examine categories, functors, and endofunctors. In other words, we
-approach Haskell functors through category theory.
+In this regard, we show some of the applications of category theory to
+functional programming in Haskell. More specifically, we describe and
+explain the concepts of category theory needed for conceptualizing and
+better understanding the Haskell type class of functors. With this
+purpose, we examine categories, functors, and endofunctors. In other
+words, we approach the Haskell type class of functors through category
+theory.
 
 \begin{note}
   \label{note:cain}
@@ -163,8 +166,7 @@ approach Haskell functors through category theory.
   Programming, an undergraduate project supervised by Andrés Sicard
   Ramírez. It is submitted in partial fulfillment of the requirements
   for the degree of Systems Engineering at EAFIT University. For more
-  examples and the missing proofs, see \parencite[§§~2,
-    4]{villaisaza-2014}.
+  examples and the missing proofs, see \parencite{villaisaza-2014}.
 
 \end{note}
 
@@ -177,6 +179,8 @@ approach Haskell functors through category theory.
 {-# LANGUAGE InstanceSigs   #-}
 {-# LANGUAGE KindSignatures #-}
   \end{code}
+  which enable type and kind signatures in instance and type class
+  declarations, respectively.
 
 \end{note}
 
@@ -192,20 +196,19 @@ map :: (a -> b) -> [a] -> [b]
 map _ []     = []
 map f (x:xs) = f x : map f xs
 \end{code}
-Clearly, |map|~|f|~|xs| is the list obtained by applying a function
-|f| to each element of a list |xs|, which is a weak specification.
-Indeed, let us consider the |map'| function
-\parencite[22]{yorgey-2009}:
+Intuitively, |map|~|f|~|xs| is the list obtained by applying a
+function |f| to each element of a list |xs|. Now, let us consider the
+|map'| function \parencite[22]{yorgey-2009}:
 \begin{code}
 map' :: (a -> b) -> [a] -> [b]
 map' _ []     = []
 map' f (x:xs) = f x : f x : map' f xs
 \end{code}
 Again, |map'|~|f|~|xs| is the list obtained by applying a function |f|
-to each element of a list |xs| (and duplicating each result).
-Obviously, we should accept |map| and reject |map'|, but for what
-reason? The answer lies in the |Functor| type class, which has its
-origins in category theory.
+to each element of a list |xs| (and duplicating each result). We
+should accept |map| and reject |map'|, but for what reason? The answer
+lies in the |Functor| type class, which has its origins in category
+theory.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -280,12 +283,13 @@ As examples, we consider \set, the category of sets and functions, and
   %% See \parencite[Remark 2.2]{villaisaza-2014}.
 
   To some extent, we are considering the objects of \set to be the set
-  of all sets, which would lead us to a paradox such as the set of all
-  sets not members of themselves. For this reason, we ought to assume,
-  for instance, that there is a big enough set, the universe, and take
-  the objects of \set to be the sets which are members of the
-  universe. For a full account on mathematical foundations of category
-  theory, see \parencites[§~1.8]{awodey-2010}[§~I.6]{maclane-1998}.
+  of all sets, which would lead us to a paradox such as Russell's
+  paradox (the set of all sets not members of themselves). For this
+  reason, we ought to assume, for instance, that there is a big enough
+  set, the universe, and take the objects of \set to be the sets which
+  are members of the universe. For a full account on mathematical
+  foundations of category theory, see
+  \parencites[§~1.8]{awodey-2010}[§~I.6]{maclane-1998}.
 
 \end{remark}
 
@@ -310,9 +314,9 @@ not True  = False
   \begin{code}
 id :: a -> a
 id x = x
-\end{code}
+  \end{code}
   and composite functions, by the |(.)| function:
-\begin{code}
+  \begin{code}
 (.) :: (b -> c) -> (a -> b) -> a -> c
 (g . f) x = g (f x)
   \end{code}
@@ -324,27 +328,28 @@ id x = x
 
   %% See \parencite[Convention 1]{villaisaza-2014}.
 
-  Unfortunately, Haskell types have bottom. For instance, the values
-  of |Bool| include not only |False| and |True|, but also |undefined|:
+  Haskell types have bottom. For instance, the values of |Bool|
+  include not only |False| and |True|, but also |undefined|:
   \begin{code}
 undefined :: a
 undefined = undefined
   \end{code}
-  As a consequence, Haskell types do not yield a category. Thus, by
-  Haskell types, we actually mean Haskell types without bottom, which
-  yield a category: \hask.
+  As a consequence, Haskell types do not yield a category\footnote{See
+    \url{http://www.haskell.org/haskellwiki/Hask}.}. Thus, by Haskell
+  types, we actually mean Haskell types without bottom, which yield a
+  category: \hask.
 
 \end{remark}
 
-\begin{note}
-  \label{note:categories}
+\begin{bibremark}
+  \label{re:categories}
 
   The definition of category, the example of \set, and the remark
   about foundations are based on \parencites[4--5]{awodey-2010}[7--9,
     12, 21, 289]{maclane-1998}. For more information about \hask, see,
   for instance, \parencites[74]{elkins-2009}[22, 49--51]{yorgey-2009}.
 
-\end{note}
+\end{bibremark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -362,8 +367,8 @@ composite morphisms are preserved.
 
   %% \parencite[Definition 4.1]{villaisaza-2014}
 
-  Let \cat{C} and \cat{D} be categories. A functor $\func{F}: \cat{C}
-  \to \cat{D}$ assigns to each object $a$ in \cat{C} an object
+  Let \cat{C} and \cat{D} be two categories. A functor $\func{F}:
+  \cat{C} \to \cat{D}$ assigns to each object $a$ in \cat{C} an object
   $\funcO{F}(a)$ in \cat{D}, and to each morphism $f: a \to b$ in
   \cat{C} a morphism $\funcM{F}(f): \funcO{F}(a) \to \funcO{F}(b)$ in
   \cat{D}, such that, for all objects $a$ in \cat{C},
@@ -378,7 +383,7 @@ composite morphisms are preserved.
     \funcM{F}(g \comp f) = \funcM{F}(g) \comp \funcM{F}(f)
     \text{.}
   \end{equation}
-  Moreover, an endofunctor is a functor from a category to itself.
+  A functor $\func{F}: \cat{C} \to \cat{C}$ is called an endofunctor.
 
 \end{definition}
 
@@ -407,9 +412,9 @@ class Functor f where
 \end{code}
 This type class consists of a type constructor |f|, that is, a type
 expression with kind |*|~|->|~|*|, like |Maybe| (see Example
-\ref{ex:functor-maybe}), and an |fmap| function, which is curried.
-More precisely, specifying the kind signature of |f| and adding
-unnecessary parentheses to the type signature of |fmap|:
+\ref{ex:functor-maybe}), and an |fmap| function. A more precise type
+class declaration is obtained by specifying the kind signature of |f|
+and adding (unnecessary) parentheses to the type signature of |fmap|:
 \begin{code}
 class Functor (f :: * -> *) where
   fmap :: (a -> b) -> (f a -> f b)
@@ -469,7 +474,7 @@ instance Functor [] where
   However, since the |Functor| type class does not include
   \eqref{eq:functor-identity} and \eqref{eq:functor-composition}, the
   |[]| type constructor and the |map'| function (see Section
-  \ref{sec:motivation}) constitute another |[]| (Haskell) functor:
+  \ref{sec:motivation}) constitute another instance:
   \begin{code}
 instance Functor [] where
   fmap :: (a -> b) -> [a] -> [b]
@@ -490,8 +495,8 @@ instance Functor [] where
 
 \end{example}
 
-\begin{note}
-  \label{note:functors}
+\begin{bibremark}
+  \label{re:functors}
 
   The definition of functor and the example of the power set
   endofunctor are based on
@@ -499,7 +504,7 @@ instance Functor [] where
     431]{poigne-1992}, and the study of functors in Haskell, on
   \parencites[146--150, 218--227]{lipovača-2011}[18--23]{yorgey-2009}.
 
-\end{note}
+\end{bibremark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -507,19 +512,19 @@ instance Functor [] where
 \label{sec:conclusions}
 
 We described and explained categories, functors, and endofunctors, and
-applied them to Haskell and, in particular, Haskell functors and the
-|map| function, which we used as motivation. While studying category
-theory may not be necessary for mapping over lists, we believe it is
-very useful for better understanding what that means. In addition,
-even though it might be difficult at first (as a matter of fact,
-\textcite[25]{bird-demoor-1997} claim that ``one does not so much
-learn category theory as absorb it over a period of time''), we claim
-it is definitely worth it.
+applied them to Haskell and, in particular, the Haskell type class of
+functors and the |map| function, which we used as motivation. While
+studying category theory may not be necessary for mapping over lists,
+we believe it is very useful for better understanding what that means.
+In addition, even though it might be difficult at first (as a matter
+of fact, \textcite[25]{bird-demoor-1997} claim that ``one does not so
+much learn category theory as absorb it over a period of time''), we
+claim it is definitely worth it.
 
-Obviously, we did not cover all of category theory. For instance, we
-did not include concepts such as algebras and initial algebras, monads
-and Kleisli triples, and natural transformations. Still, the notions
-of categories and functors offer an appropriate starting point for the
+We did not cover all of category theory. For instance, we did not
+include concepts such as algebras and initial algebras, monads and
+Kleisli triples, and natural transformations. Still, the notions of
+categories and functors offer an appropriate starting point for the
 study of category theory applied to functional programming, and give a
 general idea of \parencite{villaisaza-2014}, in which we consider
 functors, parametrically polymorphic functions, monads, and algebraic
